@@ -1,5 +1,7 @@
 # 💍 CerimonIA – Assessoria de Casamento Inteligente
 
+[**✨ Ver Demonstração Ao Vivo**](https://stehlima.github.io/cerimon-ia/)
+
 A CerimonIA é uma plataforma premium de assessoria de casamento que utiliza Inteligência Artificial para automatizar as partes mais estressantes do planejamento: cotações com fornecedores, gestão financeira e cronograma.
 
 ![CerimonIA Hero](ceremon_ia_hero_1777897441885.png)
