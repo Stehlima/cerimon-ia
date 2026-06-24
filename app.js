@@ -1,33 +1,41 @@
 // === STATE MANAGEMENT ===
-let appState = JSON.parse(localStorage.getItem('cerimonIA_state')) || {
-  brideName: '',
-  groomName: '',
-  weddingDate: '2025-11-15',
-  weddingCity: '',
-  totalBudget: 0,
-  spentBudget: 0,
-  suppliers: [
-    { name: 'Sabor & Arte', cat: 'Buffet', city: 'Carapicuíba', avail: true, price: 'R$ 28.500', includes: 'Completo + open bar', home: true },
-    { name: 'Studio Lumière', cat: 'Fotografia', city: 'Carapicuíba', avail: true, price: 'R$ 7.800', includes: '12h + álbum 30p', home: true }
-  ],
-  missions: {
-    'Buffet': { status: 'Procurando fornecedor', messages: [] },
-    'Decoração': { status: 'Procurando fornecedor', messages: [] },
-    'Fotografia': { status: 'Procurando fornecedor', messages: [] }
-  },
-  guests: [],
-  moodboard: [],
-  timeline: [],
-  budgetItems: [], // Começa vazio
-  giftLink: ''
-};
+let appState;
+try {
+  appState = JSON.parse(localStorage.getItem('cerimonIA_state'));
+} catch (e) {
+  appState = null;
+}
+if (!appState) {
+  appState = {
+    brideName: '',
+    groomName: '',
+    weddingDate: '2025-11-15',
+    weddingCity: '',
+    totalBudget: 0,
+    spentBudget: 0,
+    suppliers: [
+      { name: 'Sabor & Arte', cat: 'Buffet', city: 'Carapicuíba', avail: true, price: 'R$ 28.500', includes: 'Completo + open bar', home: true },
+      { name: 'Studio Lumière', cat: 'Fotografia', city: 'Carapicuíba', avail: true, price: 'R$ 7.800', includes: '12h + álbum 30p', home: true }
+    ],
+    missions: {
+      'Buffet': { status: 'Procurando fornecedor', messages: [] },
+      'Decoração': { status: 'Procurando fornecedor', messages: [] },
+      'Fotografia': { status: 'Procurando fornecedor', messages: [] }
+    },
+    guests: [],
+    moodboard: [],
+    timeline: [],
+    budgetItems: [], // Começa vazio
+    giftLink: ''
+  };
+}
 
 // === SUPABASE CONFIG ===
 const SUPABASE_URL = 'https://nnncitsncfaakdpuvfvx.supabase.co'; 
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ubmNpdHNuY2ZhYWtkcHV2ZnZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNzY0NDcsImV4cCI6MjA2MTk1MjQ0N30.Z_0pZ7_v_ZqZNDQ2Nn0.xqC4TWJt_2MEs4umrfd398tLk895m0pR97mOv25ja34'; 
 let supabase = null;
 
-if (SUPABASE_URL && SUPABASE_KEY) {
+if (SUPABASE_URL && SUPABASE_KEY && window.supabase) {
   supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 }
 
@@ -914,7 +922,12 @@ function obNext(step) {
 window.addEventListener('load', () => {
   const currentUser = localStorage.getItem('cerimonIA_currentUser');
   if (currentUser) {
-    const users = JSON.parse(localStorage.getItem('cerimonIA_users') || '{}');
+    let users = {};
+    try {
+      users = JSON.parse(localStorage.getItem('cerimonIA_users') || '{}');
+    } catch(e) {
+      users = {};
+    }
     if (users[currentUser]) {
       appState = users[currentUser].state;
       enterApp();
