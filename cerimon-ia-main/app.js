@@ -30,71 +30,12 @@ if (!appState) {
   };
 }
 
-// === SUPABASE CONFIG ===
-const SUPABASE_URL = 'https://nnncitsncfaakdpuvfvx.supabase.co'; 
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ubmNpdHNuY2ZhYWtkcHV2ZnZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNzY0NDcsImV4cCI6MjA2MTk1MjQ0N30.Z_0pZ7_v_ZqZNDQ2Nn0.xqC4TWJt_2MEs4umrfd398tLk895m0pR97mOv25ja34'; 
-let supabase = null;
-
-if (SUPABASE_URL && SUPABASE_KEY && window.supabase) {
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-}
-
 function saveState() {
   localStorage.setItem('cerimonIA_state', JSON.stringify(appState));
-  
-  // Sync with user store
-  const currentUser = localStorage.getItem('cerimonIA_currentUser');
-  if (currentUser) {
-    const users = JSON.parse(localStorage.getItem('cerimonIA_users') || '{}');
-    if (users[currentUser]) {
-      users[currentUser].state = appState;
-      localStorage.setItem('cerimonIA_users', JSON.stringify(users));
-    }
-  }
   updateUI();
 }
 
-// Auth Helpers and Navigation (Already handled in index.html as fallback, but kept here for app logic)
 
-async function login() {
-  const email = document.getElementById('loginEmail').value;
-  const pass = document.getElementById('loginPass').value;
-
-  if (!email || !pass) {
-    showToast('⚠️ Preencha e-mail e senha.');
-    return;
-  }
-
-  if (supabase) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
-    if (error) {
-      showToast('❌ Erro no login: ' + error.message);
-      return;
-    }
-    localStorage.setItem('cerimonIA_currentUser', email);
-    enterApp(true);
-    updateUI();
-    showToast('👋 Bem-vindo (via Supabase)!');
-    return;
-  }
-
-  // Fallback LocalStorage
-  const users = JSON.parse(localStorage.getItem('cerimonIA_users') || '{}');
-  if (users[email] && users[email].pass === pass) {
-    appState = users[email].state;
-    localStorage.setItem('cerimonIA_currentUser', email);
-    saveState();
-    enterApp(true);
-    showToast('👋 Bem-vindo de volta!');
-  } else {
-    showToast('❌ E-mail ou senha incorretos.');
-  }
-}
-
-function logout() {
-  localStorage.removeItem('cerimonIA_currentUser');
-  location.reload();
-}
 
 function calculateMonthsLeft(targetDate) {
   const now = new Date();
@@ -859,88 +800,7 @@ document.addEventListener('click', e => {
   }
 });
 
-// Landing/Onboarding
-
-async function finishOnboarding() {
-  try {
-    const email = document.getElementById('ob-email').value;
-    const pass = document.getElementById('ob-pass').value;
-    
-    if (!email || !pass) {
-      showToast('⚠️ Por favor, preencha e-mail e senha.');
-      return;
-    }
-
-    if (supabase) {
-      const { data, error } = await supabase.auth.signUp({ email, password: pass });
-      if (error) {
-        showToast('❌ Erro ao criar conta: ' + error.message);
-        return;
-      }
-    }
-
-    appState.brideName = document.getElementById('ob-bride')?.value || 'Noiva';
-    appState.groomName = document.getElementById('ob-groom')?.value || 'Noivo';
-    appState.weddingDate = document.getElementById('ob-date')?.value || '2025-11-15';
-    appState.weddingCity = document.getElementById('ob-city')?.value || 'Carapicuíba, SP';
-    appState.totalBudget = parseFloat(document.getElementById('ob-budget')?.value) || 75000;
-    
-    // Save to User Store (Fallback/Cache)
-    const users = JSON.parse(localStorage.getItem('cerimonIA_users') || '{}');
-    users[email] = { pass: pass, state: appState };
-    localStorage.setItem('cerimonIA_users', JSON.stringify(users));
-    localStorage.setItem('cerimonIA_currentUser', email);
-
-    saveState();
-    showToast('✨ Conta criada com sucesso!');
-  } catch (e) {
-    console.error('Onboarding error:', e);
-  } finally {
-    enterApp(true);
-    updateUI();
-  }
-}
-function obNext(step) {
-  document.querySelectorAll('.onboarding-step').forEach(s => s.classList.remove('active'));
-  const targetStep = document.getElementById('ob-step-'+step);
-  if (targetStep) targetStep.classList.add('active');
-  
-  document.querySelectorAll('.ob-dot').forEach((d, i) => { 
-    if(i <= step) d.classList.add('done'); 
-    else d.classList.remove('done'); 
-  });
-
-  if (step === 3) {
-    const bride = document.getElementById('ob-bride').value || 'Noiva';
-    const budget = document.getElementById('ob-budget').value || '75.000';
-    const city = document.getElementById('ob-city').value || 'sua cidade';
-    const summary = document.getElementById('ob-summary');
-    if (summary) {
-      summary.innerHTML = `
-        <strong>Resumo do Plano:</strong><br>
-        👰 Noiva: ${bride}<br>
-        📍 Local: ${city}<br>
-        💰 Orçamento: R$ ${budget}<br>
-        ✨ Estilo Detectado: Moderno/Luxo<br><br>
-        <em>IA está gerando 3 propostas agora...</em>`;
-    }
-  }
-}
-
 window.addEventListener('load', () => {
-  const currentUser = localStorage.getItem('cerimonIA_currentUser');
-  if (currentUser) {
-    let users = {};
-    try {
-      users = JSON.parse(localStorage.getItem('cerimonIA_users') || '{}');
-    } catch(e) {
-      users = {};
-    }
-    if (users[currentUser]) {
-      appState = users[currentUser].state;
-    }
-    enterApp(true);
-  }
   updateUI();
   initConcierge();
 });
